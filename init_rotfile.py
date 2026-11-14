@@ -1,60 +1,28 @@
-class Continent:
-    def __init__(self, plate_id: int):
-        self.plate_id = plate_id
-        self.conjugate_ids = []
-    
-time = 0
-while True:
-    user_input = input("What is your starting time? ")
-    try:
-        time = float(user_input)
-        if time < 1:
-            print("Starting time must be before 1 Ma, as 1 Ma is when drift correction stops.")
-            continue
-        break
-    except ValueError:
-        continue
+import pygplates as pyg
+import argparse
+from colorama import Fore, init
 
-continents = []
-ids = set()
+init(autoreset=True)
 
-while True:
-    user_input = input("Enter a plate ID (type in q or quit to finish entering them): ")
-    if user_input in ('q', 'quit'):
-        break
-    try:
-        plate_id = int(user_input)
-        if plate_id == 999:
-            print("In a .rot file, lines starting with 999 are ignored, so that plate ID does nothing.")
-            continue
-        if plate_id in ids:
-            print("You already have this ID.")
-            continue
-        ids.add(plate_id)
-        continent = Continent(plate_id)
-        while True:
-            new_user_input = input("Enter a conjugate plate ID (type in q or quit to finish entering them): ")
-            if new_user_input in ('q', 'quit'):
-                break
-            try:
-                conjugate_plate_id = int(new_user_input)
-                if conjugate_plate_id == 999:
-                    print("In a .rot file, lines starting with 999 are ignored, so that plate ID does nothing.")
-                    continue
-                if conjugate_plate_id in ids:
-                    print("You already have this ID.")
-                    continue
-                ids.add(conjugate_plate_id)
-                continent.conjugate_ids.append(conjugate_plate_id)
-            except ValueError:
-                continue
+parser = argparse.ArgumentParser(description="Make an initial .rot file.")
+parser.add_argument("--ids", nargs="+", required=True, help="IDs to add.")
+parser.add_argument("--start", required=False, default=1000, help="Time of beginning. Defaults to 1000.")
 
-        continents.append(continent)
-    except ValueError:
-        continue
+raw_args = parser.parse_args()
+start = float(raw_args.start)
+ids = [int(i) for i in raw_args.ids]
+if start <= 0.01:
+    print(Fore.RED + "ERROR: Start has to be before 0.01 Ma")
+    exit()
 
-with open("rotation.rot", 'w+') as f:
-    for continent in continents:
-        f.write(f"{continent.plate_id} 0.0 90.0 0.0 0.0 000 !\n{continent.plate_id} {time:.2f} 90.0 0.0 0.0 000 !\n")
-        for conjugate_id in continent.conjugate_ids:
-            f.write(f"{conjugate_id} 0.0 90.0 0.0 0.0 {continent.plate_id} !\n{conjugate_id} {time:.2f} 90.0 0.0 0.0 {continent.plate_id} !\n")
+features = []
+for i in ids:
+    rotation_samples = [pyg.GpmlTimeSample(pyg.GpmlFiniteRotation(pyg.FiniteRotation.create_identity_rotation()), 0.0, "Dummy"),
+                        pyg.GpmlTimeSample(pyg.GpmlFiniteRotation(pyg.FiniteRotation.create_identity_rotation()), start, "Beginning")]
+
+    irregular_sampling = pyg.GpmlIrregularSampling(rotation_samples)
+    rotation_feature = pyg.Feature.create_total_reconstruction_sequence(fixed_plate_id=0, moving_plate_id=i, total_reconstruction_pole=irregular_sampling)
+    features.append(rotation_feature)
+
+feature_collection = pyg.FeatureCollection(features)
+feature_collection.write("rotation.rot")
