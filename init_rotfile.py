@@ -1,6 +1,7 @@
 import pygplates as pyg
 import argparse
-from colorama import Fore, init
+from colorama import Fore, init 
+from constants import *
 
 init(autoreset=True)
 
@@ -25,4 +26,4 @@ for i in ids:
     features.append(rotation_feature)
 
 feature_collection = pyg.FeatureCollection(features)
-feature_collection.write("rotation.rot")
+feature_collection.write(ROT_FILE)
