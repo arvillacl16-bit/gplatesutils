@@ -11,7 +11,7 @@ parser.add_argument("--start", required=False, default=1000, help="Time of begin
 
 raw_args = parser.parse_args()
 start = float(raw_args.start)
-ids = [int(i) for i in raw_args.ids]
+ids = [abs(int(i)) for i in raw_args.ids]
 if start <= 0.01:
     print(Fore.RED + "ERROR: Start has to be before 0.01 Ma")
     exit()

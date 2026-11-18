@@ -8,6 +8,7 @@ try:
     feature_collection = pyg.FeatureCollection(ROT_FILE)
 except Exception as e:
     print(Fore.RED + f"ERROR: Could not load rotation file. Details: {e}")
+    exit()
 
 modified_features = []
 
