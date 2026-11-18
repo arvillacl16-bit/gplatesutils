@@ -60,7 +60,7 @@ for feature in feature_collection:
         new_samples.append(pyg.GpmlTimeSample(pyg.GpmlFiniteRotation(new_rel_rotation_at_T), time, "Anchor switch"))
 
         for sample in time_samples:
-            if sample.get_time() in (0, 0.01):
+            if sample.get_time() == 0:
                 new_samples.append(sample)
 
         new_samples.sort(key=lambda s: s.get_time())
@@ -77,3 +77,4 @@ else:
     output_collection = pyg.FeatureCollection(modified_features)
     output_collection.write(ROT_FILE)
 
+import drift_correction
