@@ -11,8 +11,8 @@ parser.add_argument("--conjid", required=False, default=0, help="Conjugate ID. Z
 parser.add_argument("--time", required=True, help="Time of change.")
 
 raw_args = parser.parse_args()
-coll_id = int(raw_args.collid)
-conj_id = int(raw_args.conjid)
+coll_id = abs(int(raw_args.collid))
+conj_id = abs(int(raw_args.conjid))
 time = float(raw_args.time)
 
 if time < 0.01:
